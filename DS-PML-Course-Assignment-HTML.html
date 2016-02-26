@@ -1,0 +1,263 @@
+<html>
+
+<head>
+<style type="text/css">
+.knitr .inline {
+  background-color: #f7f7f7;
+  border:solid 1px #B0B0B0;
+}
+.error {
+	font-weight: bold;
+	color: #FF0000;
+}
+.warning {
+	font-weight: bold;
+}
+.message {
+	font-style: italic;
+}
+.source, .output, .warning, .error, .message {
+	padding: 0 1em;
+  border:solid 1px #F7F7F7;
+}
+.source {
+  background-color: #f5f5f5;
+}
+.rimage .left {
+  text-align: left;
+}
+.rimage .right {
+  text-align: right;
+}
+.rimage .center {
+  text-align: center;
+}
+.hl.num {
+  color: #AF0F91;
+}
+.hl.str {
+  color: #317ECC;
+}
+.hl.com {
+  color: #AD95AF;
+  font-style: italic;
+}
+.hl.opt {
+  color: #000000;
+}
+.hl.std {
+  color: #585858;
+}
+.hl.kwa {
+  color: #295F94;
+  font-weight: bold;
+}
+.hl.kwb {
+  color: #B05A65;
+}
+.hl.kwc {
+  color: #55aa55;
+}
+.hl.kwd {
+  color: #BC5A65;
+  font-weight: bold;
+}
+</style>
+
+<meta name="author" content="Rich Hanzl" />
+
+<title>Practical Machine Learning - Course Assignment</title>
+</head>
+
+<body>
+
+<div class="chunk" id="unnamed-chunk-1"><div class="rcode"><div class="source"><pre class="knitr r"><span class="hl kwd">library</span><span class="hl std">(caret)</span>
+</pre></div>
+<div class="message"><pre class="knitr r">## Loading required package: lattice
+## Loading required package: ggplot2
+</pre></div>
+<div class="source"><pre class="knitr r"><span class="hl kwd">library</span><span class="hl std">(rpart)</span>
+<span class="hl kwd">library</span><span class="hl std">(rpart.plot)</span>
+<span class="hl kwd">library</span><span class="hl std">(RColorBrewer)</span>
+<span class="hl kwd">library</span><span class="hl std">(rattle)</span>
+</pre></div>
+<div class="message"><pre class="knitr r">## Rattle: A free graphical interface for data mining with R.
+## Version 4.1.0 Copyright (c) 2006-2015 Togaware Pty Ltd.
+## Type 'rattle()' to shake, rattle, and roll your data.
+</pre></div>
+<div class="source"><pre class="knitr r"><span class="hl kwd">library</span><span class="hl std">(randomForest)</span>
+</pre></div>
+<div class="message"><pre class="knitr r">## randomForest 4.6-12
+## Type rfNews() to see new features/changes/bug fixes.
+## 
+## Attaching package: 'randomForest'
+## 
+## The following object is masked from 'package:ggplot2':
+## 
+##     margin
+</pre></div>
+<div class="source"><pre class="knitr r"><span class="hl kwd">set.seed</span><span class="hl std">(</span><span class="hl num">012345</span><span class="hl std">)</span>
+<span class="hl std">trainUrl</span> <span class="hl kwb">&lt;-</span> <span class="hl str">&quot;https://d396qusza40orc.cloudfront.net/predmachlearn/pml-training.csv&quot;</span>
+<span class="hl std">testUrl</span> <span class="hl kwb">&lt;-</span> <span class="hl str">&quot;https://d396qusza40orc.cloudfront.net/predmachlearn/pml-testing.csv&quot;</span>
+<span class="hl std">training</span> <span class="hl kwb">&lt;-</span> <span class="hl kwd">read.csv</span><span class="hl std">(</span><span class="hl kwd">url</span><span class="hl std">(trainUrl),</span> <span class="hl kwc">na.strings</span><span class="hl std">=</span><span class="hl kwd">c</span><span class="hl std">(</span><span class="hl str">&quot;NA&quot;</span><span class="hl std">,</span><span class="hl str">&quot;#DIV/0!&quot;</span><span class="hl std">,</span><span class="hl str">&quot;&quot;</span><span class="hl std">))</span>
+<span class="hl std">testing</span> <span class="hl kwb">&lt;-</span> <span class="hl kwd">read.csv</span><span class="hl std">(</span><span class="hl kwd">url</span><span class="hl std">(testUrl),</span> <span class="hl kwc">na.strings</span><span class="hl std">=</span><span class="hl kwd">c</span><span class="hl std">(</span><span class="hl str">&quot;NA&quot;</span><span class="hl std">,</span><span class="hl str">&quot;#DIV/0!&quot;</span><span class="hl std">,</span><span class="hl str">&quot;&quot;</span><span class="hl std">))</span>
+<span class="hl std">inTrain</span> <span class="hl kwb">&lt;-</span> <span class="hl kwd">createDataPartition</span><span class="hl std">(</span><span class="hl kwc">y</span><span class="hl std">=training</span><span class="hl opt">$</span><span class="hl std">classe,</span> <span class="hl kwc">p</span><span class="hl std">=</span><span class="hl num">0.6</span><span class="hl std">,</span> <span class="hl kwc">list</span><span class="hl std">=</span><span class="hl num">FALSE</span><span class="hl std">)</span>
+<span class="hl std">myTraining</span> <span class="hl kwb">&lt;-</span> <span class="hl std">training[inTrain, ]; myTesting</span> <span class="hl kwb">&lt;-</span> <span class="hl std">training[</span><span class="hl opt">-</span><span class="hl std">inTrain, ]</span>
+<span class="hl kwd">dim</span><span class="hl std">(myTraining)</span>
+</pre></div>
+<div class="output"><pre class="knitr r">## [1] 11776   160
+</pre></div>
+<div class="source"><pre class="knitr r"><span class="hl kwd">dim</span><span class="hl std">(myTesting)</span>
+</pre></div>
+<div class="output"><pre class="knitr r">## [1] 7846  160
+</pre></div>
+<div class="source"><pre class="knitr r"><span class="hl std">myDataNZV</span> <span class="hl kwb">&lt;-</span> <span class="hl kwd">nearZeroVar</span><span class="hl std">(myTraining,</span> <span class="hl kwc">saveMetrics</span><span class="hl std">=</span><span class="hl num">TRUE</span><span class="hl std">)</span>
+<span class="hl std">myNZVvars</span> <span class="hl kwb">&lt;-</span> <span class="hl kwd">names</span><span class="hl std">(myTraining)</span> <span class="hl opt">%in%</span> <span class="hl kwd">c</span><span class="hl std">(</span><span class="hl str">&quot;new_window&quot;</span><span class="hl std">,</span> <span class="hl str">&quot;kurtosis_roll_belt&quot;</span><span class="hl std">,</span> <span class="hl str">&quot;kurtosis_picth_belt&quot;</span><span class="hl std">,</span>
+                                      <span class="hl str">&quot;kurtosis_yaw_belt&quot;</span><span class="hl std">,</span> <span class="hl str">&quot;skewness_roll_belt&quot;</span><span class="hl std">,</span> <span class="hl str">&quot;skewness_roll_belt.1&quot;</span><span class="hl std">,</span> <span class="hl str">&quot;skewness_yaw_belt&quot;</span><span class="hl std">,</span>
+                                      <span class="hl str">&quot;max_yaw_belt&quot;</span><span class="hl std">,</span> <span class="hl str">&quot;min_yaw_belt&quot;</span><span class="hl std">,</span> <span class="hl str">&quot;amplitude_yaw_belt&quot;</span><span class="hl std">,</span> <span class="hl str">&quot;avg_roll_arm&quot;</span><span class="hl std">,</span> <span class="hl str">&quot;stddev_roll_arm&quot;</span><span class="hl std">,</span>
+                                      <span class="hl str">&quot;var_roll_arm&quot;</span><span class="hl std">,</span> <span class="hl str">&quot;avg_pitch_arm&quot;</span><span class="hl std">,</span> <span class="hl str">&quot;stddev_pitch_arm&quot;</span><span class="hl std">,</span> <span class="hl str">&quot;var_pitch_arm&quot;</span><span class="hl std">,</span> <span class="hl str">&quot;avg_yaw_arm&quot;</span><span class="hl std">,</span>
+                                      <span class="hl str">&quot;stddev_yaw_arm&quot;</span><span class="hl std">,</span> <span class="hl str">&quot;var_yaw_arm&quot;</span><span class="hl std">,</span> <span class="hl str">&quot;kurtosis_roll_arm&quot;</span><span class="hl std">,</span> <span class="hl str">&quot;kurtosis_picth_arm&quot;</span><span class="hl std">,</span>
+                                      <span class="hl str">&quot;kurtosis_yaw_arm&quot;</span><span class="hl std">,</span> <span class="hl str">&quot;skewness_roll_arm&quot;</span><span class="hl std">,</span> <span class="hl str">&quot;skewness_pitch_arm&quot;</span><span class="hl std">,</span> <span class="hl str">&quot;skewness_yaw_arm&quot;</span><span class="hl std">,</span>
+                                      <span class="hl str">&quot;max_roll_arm&quot;</span><span class="hl std">,</span> <span class="hl str">&quot;min_roll_arm&quot;</span><span class="hl std">,</span> <span class="hl str">&quot;min_pitch_arm&quot;</span><span class="hl std">,</span> <span class="hl str">&quot;amplitude_roll_arm&quot;</span><span class="hl std">,</span> <span class="hl str">&quot;amplitude_pitch_arm&quot;</span><span class="hl std">,</span>
+                                      <span class="hl str">&quot;kurtosis_roll_dumbbell&quot;</span><span class="hl std">,</span> <span class="hl str">&quot;kurtosis_picth_dumbbell&quot;</span><span class="hl std">,</span> <span class="hl str">&quot;kurtosis_yaw_dumbbell&quot;</span><span class="hl std">,</span> <span class="hl str">&quot;skewness_roll_dumbbell&quot;</span><span class="hl std">,</span>
+                                      <span class="hl str">&quot;skewness_pitch_dumbbell&quot;</span><span class="hl std">,</span> <span class="hl str">&quot;skewness_yaw_dumbbell&quot;</span><span class="hl std">,</span> <span class="hl str">&quot;max_yaw_dumbbell&quot;</span><span class="hl std">,</span> <span class="hl str">&quot;min_yaw_dumbbell&quot;</span><span class="hl std">,</span>
+                                      <span class="hl str">&quot;amplitude_yaw_dumbbell&quot;</span><span class="hl std">,</span> <span class="hl str">&quot;kurtosis_roll_forearm&quot;</span><span class="hl std">,</span> <span class="hl str">&quot;kurtosis_picth_forearm&quot;</span><span class="hl std">,</span> <span class="hl str">&quot;kurtosis_yaw_forearm&quot;</span><span class="hl std">,</span>
+                                      <span class="hl str">&quot;skewness_roll_forearm&quot;</span><span class="hl std">,</span> <span class="hl str">&quot;skewness_pitch_forearm&quot;</span><span class="hl std">,</span> <span class="hl str">&quot;skewness_yaw_forearm&quot;</span><span class="hl std">,</span> <span class="hl str">&quot;max_roll_forearm&quot;</span><span class="hl std">,</span>
+                                      <span class="hl str">&quot;max_yaw_forearm&quot;</span><span class="hl std">,</span> <span class="hl str">&quot;min_roll_forearm&quot;</span><span class="hl std">,</span> <span class="hl str">&quot;min_yaw_forearm&quot;</span><span class="hl std">,</span> <span class="hl str">&quot;amplitude_roll_forearm&quot;</span><span class="hl std">,</span>
+                                      <span class="hl str">&quot;amplitude_yaw_forearm&quot;</span><span class="hl std">,</span> <span class="hl str">&quot;avg_roll_forearm&quot;</span><span class="hl std">,</span> <span class="hl str">&quot;stddev_roll_forearm&quot;</span><span class="hl std">,</span> <span class="hl str">&quot;var_roll_forearm&quot;</span><span class="hl std">,</span>
+                                      <span class="hl str">&quot;avg_pitch_forearm&quot;</span><span class="hl std">,</span> <span class="hl str">&quot;stddev_pitch_forearm&quot;</span><span class="hl std">,</span> <span class="hl str">&quot;var_pitch_forearm&quot;</span><span class="hl std">,</span> <span class="hl str">&quot;avg_yaw_forearm&quot;</span><span class="hl std">,</span>
+                                      <span class="hl str">&quot;stddev_yaw_forearm&quot;</span><span class="hl std">,</span> <span class="hl str">&quot;var_yaw_forearm&quot;</span><span class="hl std">)</span>
+<span class="hl std">myTraining</span> <span class="hl kwb">&lt;-</span> <span class="hl std">myTraining[</span><span class="hl opt">!</span><span class="hl std">myNZVvars]</span>
+<span class="hl kwd">dim</span><span class="hl std">(myTraining)</span>
+</pre></div>
+<div class="output"><pre class="knitr r">## [1] 11776   100
+</pre></div>
+<div class="source"><pre class="knitr r"><span class="hl std">myTraining</span> <span class="hl kwb">&lt;-</span> <span class="hl std">myTraining[</span><span class="hl kwd">c</span><span class="hl std">(</span><span class="hl opt">-</span><span class="hl num">1</span><span class="hl std">)]</span>
+<span class="hl std">trainingV3</span> <span class="hl kwb">&lt;-</span> <span class="hl std">myTraining</span> <span class="hl com">#creating another subset to iterate in loop</span>
+<span class="hl kwa">for</span><span class="hl std">(i</span> <span class="hl kwa">in</span> <span class="hl num">1</span><span class="hl opt">:</span><span class="hl kwd">length</span><span class="hl std">(myTraining)) {</span> <span class="hl com">#for every column in the training dataset</span>
+  <span class="hl kwa">if</span><span class="hl std">(</span> <span class="hl kwd">sum</span><span class="hl std">(</span> <span class="hl kwd">is.na</span><span class="hl std">( myTraining[, i] ) )</span> <span class="hl opt">/</span><span class="hl kwd">nrow</span><span class="hl std">(myTraining)</span> <span class="hl opt">&gt;=</span> <span class="hl num">.6</span> <span class="hl std">) {</span> <span class="hl com">#if n?? NAs &gt; 60% of total observations</span>
+    <span class="hl kwa">for</span><span class="hl std">(j</span> <span class="hl kwa">in</span> <span class="hl num">1</span><span class="hl opt">:</span><span class="hl kwd">length</span><span class="hl std">(trainingV3)) {</span>
+      <span class="hl kwa">if</span><span class="hl std">(</span> <span class="hl kwd">length</span><span class="hl std">(</span> <span class="hl kwd">grep</span><span class="hl std">(</span><span class="hl kwd">names</span><span class="hl std">(myTraining[i]),</span> <span class="hl kwd">names</span><span class="hl std">(trainingV3)[j]) )</span> <span class="hl opt">==</span><span class="hl num">1</span><span class="hl std">)  {</span> <span class="hl com">#if the columns are the same:</span>
+        <span class="hl std">trainingV3</span> <span class="hl kwb">&lt;-</span> <span class="hl std">trainingV3[ ,</span> <span class="hl opt">-</span><span class="hl std">j]</span> <span class="hl com">#Remove that column</span>
+      <span class="hl std">}</span>
+    <span class="hl std">}</span>
+  <span class="hl std">}</span>
+<span class="hl std">}</span>
+<span class="hl kwd">dim</span><span class="hl std">(trainingV3)</span>
+</pre></div>
+<div class="output"><pre class="knitr r">## [1] 11776    58
+</pre></div>
+<div class="source"><pre class="knitr r"><span class="hl std">myTraining</span> <span class="hl kwb">&lt;-</span> <span class="hl std">trainingV3</span>
+<span class="hl kwd">rm</span><span class="hl std">(trainingV3)</span>
+<span class="hl std">clean1</span> <span class="hl kwb">&lt;-</span> <span class="hl kwd">colnames</span><span class="hl std">(myTraining)</span>
+<span class="hl std">clean2</span> <span class="hl kwb">&lt;-</span> <span class="hl kwd">colnames</span><span class="hl std">(myTraining[,</span> <span class="hl opt">-</span><span class="hl num">58</span><span class="hl std">])</span>
+<span class="hl std">myTesting</span> <span class="hl kwb">&lt;-</span> <span class="hl std">myTesting[clean1]</span>
+<span class="hl std">testing</span> <span class="hl kwb">&lt;-</span> <span class="hl std">testing[clean2]</span>
+<span class="hl kwd">dim</span><span class="hl std">(myTesting)</span>
+</pre></div>
+<div class="output"><pre class="knitr r">## [1] 7846   58
+</pre></div>
+<div class="source"><pre class="knitr r"><span class="hl kwd">dim</span><span class="hl std">(testing)</span>
+</pre></div>
+<div class="output"><pre class="knitr r">## [1] 20 57
+</pre></div>
+<div class="source"><pre class="knitr r"><span class="hl kwa">for</span> <span class="hl std">(i</span> <span class="hl kwa">in</span> <span class="hl num">1</span><span class="hl opt">:</span><span class="hl kwd">length</span><span class="hl std">(testing) ) {</span>
+  <span class="hl kwa">for</span><span class="hl std">(j</span> <span class="hl kwa">in</span> <span class="hl num">1</span><span class="hl opt">:</span><span class="hl kwd">length</span><span class="hl std">(myTraining)) {</span>
+    <span class="hl kwa">if</span><span class="hl std">(</span> <span class="hl kwd">length</span><span class="hl std">(</span> <span class="hl kwd">grep</span><span class="hl std">(</span><span class="hl kwd">names</span><span class="hl std">(myTraining[i]),</span> <span class="hl kwd">names</span><span class="hl std">(testing)[j]) )</span> <span class="hl opt">==</span><span class="hl num">1</span><span class="hl std">)  {</span>
+      <span class="hl kwd">class</span><span class="hl std">(testing[j])</span> <span class="hl kwb">&lt;-</span> <span class="hl kwd">class</span><span class="hl std">(myTraining[i])</span>
+    <span class="hl std">}</span>
+  <span class="hl std">}</span>
+<span class="hl std">}</span>
+<span class="hl std">testing</span> <span class="hl kwb">&lt;-</span> <span class="hl kwd">rbind</span><span class="hl std">(myTraining[</span><span class="hl num">2</span><span class="hl std">,</span> <span class="hl opt">-</span><span class="hl num">58</span><span class="hl std">] , testing)</span>
+<span class="hl std">testing</span> <span class="hl kwb">&lt;-</span> <span class="hl std">testing[</span><span class="hl opt">-</span><span class="hl num">1</span><span class="hl std">,]</span>
+<span class="hl std">modFitA1</span> <span class="hl kwb">&lt;-</span> <span class="hl kwd">rpart</span><span class="hl std">(classe</span> <span class="hl opt">~</span> <span class="hl std">.,</span> <span class="hl kwc">data</span><span class="hl std">=myTraining,</span> <span class="hl kwc">method</span><span class="hl std">=</span><span class="hl str">&quot;class&quot;</span><span class="hl std">)</span>
+<span class="hl kwd">fancyRpartPlot</span><span class="hl std">(modFitA1)</span>
+</pre></div>
+</div><div class="rimage default"><img src="figure/unnamed-chunk-1-1.png" title="plot of chunk unnamed-chunk-1" alt="plot of chunk unnamed-chunk-1" class="plot" /></div><div class="rcode">
+<div class="source"><pre class="knitr r"><span class="hl std">predictionsA1</span> <span class="hl kwb">&lt;-</span> <span class="hl kwd">predict</span><span class="hl std">(modFitA1, myTesting,</span> <span class="hl kwc">type</span> <span class="hl std">=</span> <span class="hl str">&quot;class&quot;</span><span class="hl std">)</span>
+<span class="hl kwd">confusionMatrix</span><span class="hl std">(predictionsA1, myTesting</span><span class="hl opt">$</span><span class="hl std">classe)</span>
+</pre></div>
+<div class="output"><pre class="knitr r">## Confusion Matrix and Statistics
+## 
+##           Reference
+## Prediction    A    B    C    D    E
+##          A 2150   60    7    1    0
+##          B   61 1260   69   64    0
+##          C   21  188 1269  143    4
+##          D    0   10   14  857   78
+##          E    0    0    9  221 1360
+## 
+## Overall Statistics
+##                                           
+##                Accuracy : 0.8789          
+##                  95% CI : (0.8715, 0.8861)
+##     No Information Rate : 0.2845          
+##     P-Value [Acc &gt; NIR] : &lt; 2.2e-16       
+##                                           
+##                   Kappa : 0.8468          
+##  Mcnemar's Test P-Value : NA              
+## 
+## Statistics by Class:
+## 
+##                      Class: A Class: B Class: C Class: D Class: E
+## Sensitivity            0.9633   0.8300   0.9276   0.6664   0.9431
+## Specificity            0.9879   0.9693   0.9450   0.9845   0.9641
+## Pos Pred Value         0.9693   0.8666   0.7809   0.8936   0.8553
+## Neg Pred Value         0.9854   0.9596   0.9841   0.9377   0.9869
+## Prevalence             0.2845   0.1935   0.1744   0.1639   0.1838
+## Detection Rate         0.2740   0.1606   0.1617   0.1092   0.1733
+## Detection Prevalence   0.2827   0.1853   0.2071   0.1222   0.2027
+## Balanced Accuracy      0.9756   0.8997   0.9363   0.8254   0.9536
+</pre></div>
+<div class="source"><pre class="knitr r"><span class="hl std">modFitB1</span> <span class="hl kwb">&lt;-</span> <span class="hl kwd">randomForest</span><span class="hl std">(classe</span> <span class="hl opt">~</span><span class="hl std">. ,</span> <span class="hl kwc">data</span><span class="hl std">=myTraining)</span>
+<span class="hl std">predictionsB1</span> <span class="hl kwb">&lt;-</span> <span class="hl kwd">predict</span><span class="hl std">(modFitB1, myTesting,</span> <span class="hl kwc">type</span> <span class="hl std">=</span> <span class="hl str">&quot;class&quot;</span><span class="hl std">)</span>
+<span class="hl kwd">confusionMatrix</span><span class="hl std">(predictionsB1, myTesting</span><span class="hl opt">$</span><span class="hl std">classe)</span>
+</pre></div>
+<div class="output"><pre class="knitr r">## Confusion Matrix and Statistics
+## 
+##           Reference
+## Prediction    A    B    C    D    E
+##          A 2231    2    0    0    0
+##          B    1 1516    2    0    0
+##          C    0    0 1366    3    0
+##          D    0    0    0 1282    2
+##          E    0    0    0    1 1440
+## 
+## Overall Statistics
+##                                           
+##                Accuracy : 0.9986          
+##                  95% CI : (0.9975, 0.9993)
+##     No Information Rate : 0.2845          
+##     P-Value [Acc &gt; NIR] : &lt; 2.2e-16       
+##                                           
+##                   Kappa : 0.9982          
+##  Mcnemar's Test P-Value : NA              
+## 
+## Statistics by Class:
+## 
+##                      Class: A Class: B Class: C Class: D Class: E
+## Sensitivity            0.9996   0.9987   0.9985   0.9969   0.9986
+## Specificity            0.9996   0.9995   0.9995   0.9997   0.9998
+## Pos Pred Value         0.9991   0.9980   0.9978   0.9984   0.9993
+## Neg Pred Value         0.9998   0.9997   0.9997   0.9994   0.9997
+## Prevalence             0.2845   0.1935   0.1744   0.1639   0.1838
+## Detection Rate         0.2843   0.1932   0.1741   0.1634   0.1835
+## Detection Prevalence   0.2846   0.1936   0.1745   0.1637   0.1837
+## Balanced Accuracy      0.9996   0.9991   0.9990   0.9983   0.9992
+</pre></div>
+<div class="source"><pre class="knitr r"><span class="hl std">predictionsB2</span> <span class="hl kwb">&lt;-</span> <span class="hl kwd">predict</span><span class="hl std">(modFitB1, testing,</span> <span class="hl kwc">type</span> <span class="hl std">=</span> <span class="hl str">&quot;class&quot;</span><span class="hl std">)</span>
+<span class="hl std">pml_write_files</span> <span class="hl kwb">=</span> <span class="hl kwa">function</span><span class="hl std">(</span><span class="hl kwc">x</span><span class="hl std">){</span>
+  <span class="hl std">n</span> <span class="hl kwb">=</span> <span class="hl kwd">length</span><span class="hl std">(x)</span>
+  <span class="hl kwa">for</span><span class="hl std">(i</span> <span class="hl kwa">in</span> <span class="hl num">1</span><span class="hl opt">:</span><span class="hl std">n){</span>
+    <span class="hl std">filename</span> <span class="hl kwb">=</span> <span class="hl kwd">paste0</span><span class="hl std">(</span><span class="hl str">&quot;problem_id_&quot;</span><span class="hl std">,i,</span><span class="hl str">&quot;.txt&quot;</span><span class="hl std">)</span>
+    <span class="hl kwd">write.table</span><span class="hl std">(x[i],</span><span class="hl kwc">file</span><span class="hl std">=filename,</span><span class="hl kwc">quote</span><span class="hl std">=</span><span class="hl num">FALSE</span><span class="hl std">,</span><span class="hl kwc">row.names</span><span class="hl std">=</span><span class="hl num">FALSE</span><span class="hl std">,</span><span class="hl kwc">col.names</span><span class="hl std">=</span><span class="hl num">FALSE</span><span class="hl std">)</span>
+  <span class="hl std">}</span>
+<span class="hl std">}</span>
+<span class="hl kwd">pml_write_files</span><span class="hl std">(predictionsB2)</span>
+</pre></div>
+</div></div>
+
+
+
+</body>
+</html>
